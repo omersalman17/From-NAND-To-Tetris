@@ -1,0 +1,79 @@
+
+/** A Monster object of the game*/
+class Monster{
+
+    field int location;
+
+	/** This function creates a new Monster in the location given as parameter*/
+    constructor Monster new(int loc){
+        let location = loc;
+        return this;
+    }
+
+	/** This function moves the monster object downwards by one register*/
+    method void move(){
+        let location = location + 32;
+        return;
+    }
+
+    /** This function erases the monster from the screen*/
+    method void erase_monster(){
+       var int memAddress;
+		let memAddress = 16384 + location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 0);
+		do Memory.poke(memAddress + 96, 0);
+		do Memory.poke(memAddress + 128, 0);
+		do Memory.poke(memAddress + 160, 0);
+		do Memory.poke(memAddress + 192, 0);
+		do Memory.poke(memAddress + 224, 0);
+		do Memory.poke(memAddress + 256, 0);
+		do Memory.poke(memAddress + 288, 0);
+		do Memory.poke(memAddress + 320, 0);
+		do Memory.poke(memAddress + 352, 0);
+		do Memory.poke(memAddress + 384, 0);
+		do Memory.poke(memAddress + 416, 0);
+		do Memory.poke(memAddress + 448, 0);
+		do Memory.poke(memAddress + 480, 0);
+		return;
+    }
+
+	/** This function is resposible for drawing the monster on the screen*/
+    method void draw_monster() {
+		var int memAddress;
+		let memAddress = 16384 + location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 16460);
+		do Memory.poke(memAddress + 96, -16274);
+		do Memory.poke(memAddress + 128, -15257);
+		do Memory.poke(memAddress + 160, -4381);
+		do Memory.poke(memAddress + 192, 28367);
+		do Memory.poke(memAddress + 224, 32719);
+		do Memory.poke(memAddress + 256, 32711);
+		do Memory.poke(memAddress + 288, 19014);
+		do Memory.poke(memAddress + 320, 31740);
+		do Memory.poke(memAddress + 352, 32764);
+		do Memory.poke(memAddress + 384, 21828);
+		do Memory.poke(memAddress + 416, 21824);
+		do Memory.poke(memAddress + 448, 21824);
+		do Memory.poke(memAddress + 480, 32704);
+		return;
+	}
+
+	/** This function gets the location of the monster in relation to the screen.*/
+	method int get_location()
+    {
+        return location;
+    }
+
+	/** This function frees the object memory from the heap*/
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+} 
+ 
+

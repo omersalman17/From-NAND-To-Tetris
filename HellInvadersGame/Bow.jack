@@ -1,0 +1,85 @@
+/**A Bow object of the game. */
+class Bow{
+    field int resgister_bow_location;
+	/** This function creates a new Bow*/
+    constructor Bow new(){
+        let resgister_bow_location = (32*240);
+        return this;
+    }
+	/** This function draws the bow on the screen*/
+    method void draw_bow() {
+		var int memAddress;
+		let memAddress = 16384 + resgister_bow_location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 0);
+		do Memory.poke(memAddress + 96, 128);
+		do Memory.poke(memAddress + 128, 448);
+		do Memory.poke(memAddress + 160, 448);
+		do Memory.poke(memAddress + 192, 448);
+		do Memory.poke(memAddress + 224, 128);
+		do Memory.poke(memAddress + 256, 8188);
+		do Memory.poke(memAddress + 288, 16382);
+		do Memory.poke(memAddress + 320, 24707);
+		do Memory.poke(memAddress + 352, 16513);
+		do Memory.poke(memAddress + 384, 16382);
+		do Memory.poke(memAddress + 416, 128);
+		do Memory.poke(memAddress + 448, 320);
+		do Memory.poke(memAddress + 480, 544);
+		return;
+	}
+
+	/** This function erases the bow from the screen*/
+    method void erase_bow(){
+        var int memAddress;
+		let memAddress = 16384 + resgister_bow_location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 0);
+		do Memory.poke(memAddress + 96, 0);
+		do Memory.poke(memAddress + 128, 0);
+		do Memory.poke(memAddress + 160, 0);
+		do Memory.poke(memAddress + 192, 0);
+		do Memory.poke(memAddress + 224, 0);
+		do Memory.poke(memAddress + 256, 0);
+		do Memory.poke(memAddress + 288, 0);
+		do Memory.poke(memAddress + 320, 0);
+		do Memory.poke(memAddress + 352, 0);
+		do Memory.poke(memAddress + 384, 0);
+		do Memory.poke(memAddress + 416, 0);
+		do Memory.poke(memAddress + 448, 0);
+		do Memory.poke(memAddress + 480, 0);
+		return;
+    }
+
+	/** This function moves the position of the bow one bit to the right*/
+    method void move_right(){
+
+	    if (resgister_bow_location < ((32 * 241) - 12)){
+            let resgister_bow_location = resgister_bow_location + 1;
+        }
+        return;
+    }
+
+	/** This function moves the position of the bow one bit to the left*/
+    method void move_left(){
+        if (resgister_bow_location > (32 * 240)){
+            let resgister_bow_location = resgister_bow_location - 1;
+        }
+        return; 
+    }
+
+	/** This function gets the location of the bow in relation to the screen.*/
+    method int get_location()
+    {
+        return resgister_bow_location;
+    }
+
+	/** This function frees the object memory from the heap*/
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+
+} 

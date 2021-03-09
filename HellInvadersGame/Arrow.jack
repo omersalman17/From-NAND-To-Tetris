@@ -1,0 +1,76 @@
+
+/** An Arrow object of the game. */
+class Arrow
+{
+    field int location;
+	/**  This function creates a new Arrow object*/
+    constructor Arrow new(int loc)
+    {
+        let location = loc;
+        return this;
+    }
+    /** This function moves the arrow object upwards by one register*/
+    method void move()
+    {
+        let location = location - 32;
+        return;
+    }
+
+	/** This function is resposible for drawing the arrow on the screen*/
+    method void draw_arrow() {
+		var int memAddress;
+		let memAddress = 16384 + location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 0);
+		do Memory.poke(memAddress + 96, 0);
+		do Memory.poke(memAddress + 128, 256);
+		do Memory.poke(memAddress + 160, 896);
+		do Memory.poke(memAddress + 192, 896);
+		do Memory.poke(memAddress + 224, 896);
+		do Memory.poke(memAddress + 256, 256);
+		do Memory.poke(memAddress + 288, 256);
+		do Memory.poke(memAddress + 320, 256);
+		do Memory.poke(memAddress + 352, 256);
+		do Memory.poke(memAddress + 384, 256);
+		do Memory.poke(memAddress + 416, 256);
+		do Memory.poke(memAddress + 448, 640);
+		do Memory.poke(memAddress + 480, 1088);
+		return;
+	}
+	/** This function erases the arrow from the screen*/
+	method void erase_arrow(){
+       var int memAddress;
+		let memAddress = 16384 + location;
+		do Memory.poke(memAddress + 0, 0);
+		do Memory.poke(memAddress + 32, 0);
+		do Memory.poke(memAddress + 64, 0);
+		do Memory.poke(memAddress + 96, 0);
+		do Memory.poke(memAddress + 128, 0);
+		do Memory.poke(memAddress + 160, 0);
+		do Memory.poke(memAddress + 192, 0);
+		do Memory.poke(memAddress + 224, 0);
+		do Memory.poke(memAddress + 256, 0);
+		do Memory.poke(memAddress + 288, 0);
+		do Memory.poke(memAddress + 320, 0);
+		do Memory.poke(memAddress + 352, 0);
+		do Memory.poke(memAddress + 384, 0);
+		do Memory.poke(memAddress + 416, 0);
+		do Memory.poke(memAddress + 448, 0);
+		do Memory.poke(memAddress + 480, 0);
+		return;
+    }
+	/**This function gets the location of the arrow in relation to the screen. */
+    method int get_location()
+    {
+        return location;
+    }
+
+	/**This function frees the object memory from the heap*/
+	method void dispose()
+	{
+		do Memory.deAlloc(this);
+		return;
+	}
+
+}
