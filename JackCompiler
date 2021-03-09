@@ -1,3 +1,4 @@
+# running script
 
 #!/bin/sh
 python3 JackAnalyzer.py $*
