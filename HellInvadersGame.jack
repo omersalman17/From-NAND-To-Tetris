@@ -1,0 +1,640 @@
+/** HellInvadersGame Object*/
+class HellInvadersGame{
+
+    field Array monsters_array;
+    field int monsters_counter;
+    field Bow bow;
+    field Array arrows_array;
+    field int arrows_counter;
+    field int monsters_wave_cooldown_counter;
+    field int points_number;
+    field bool fire_cooldown;
+    field int arrows_shot_counter;
+
+    /** This function creates a new HellInvadersGame*/
+    constructor HellInvadersGame new()
+    {
+        let points_number = 0;
+        do Screen.drawLine(340,255, 340, 1);
+        let monsters_counter = 0;
+        let arrows_counter = 0;
+        let arrows_shot_counter = 0;
+        let fire_cooldown = false;
+        do start_new_wave(3);
+        let bow = Bow.new();
+        return this;
+    }    
+
+    /** This function manages the game*/
+    method int play()
+    {
+        var boolean exit;
+        var char key_pressed;
+        var int fire_cooldown_counter;
+        var int wave_size_counter;
+
+        var int wave_counter;
+        let wave_counter = 0;
+        let wave_size_counter = 4;
+        
+        let fire_cooldown = 25;
+        let exit = false;
+        let monsters_wave_cooldown_counter = 0;
+        while(~exit)
+        {
+            do print_messages();
+            let key_pressed = Keyboard.keyPressed();
+            do erase_previous();
+            if(fire_cooldown_counter > 24)
+            {
+                let fire_cooldown = false;
+            }
+            if (key_pressed = 132) { do bow.move_right(); }
+            if (key_pressed = 130) { do bow.move_left(); }
+            if (key_pressed = 32) { 
+                if (~fire_cooldown)
+                {
+                    do fire_bow(); 
+                    let fire_cooldown = true;
+                    let fire_cooldown_counter = 0;
+                }
+            }
+            if(wave_counter = 260)
+            { 
+                if((wave_size_counter < 12))
+                {
+                    do start_new_wave(wave_size_counter);
+                    let wave_size_counter = wave_size_counter + 1;
+                    let wave_counter = 0;
+                }               
+            }
+            do move_monsters();
+            do move_arrows();
+            do check_collision();
+            do delete_missed_arrows();
+            do draw_new();
+
+            if (points_number = 63)
+            {
+                return 2;
+            }
+            if(is_lost())
+            {
+                return 1;
+            }
+            let monsters_wave_cooldown_counter = monsters_wave_cooldown_counter + 1; 
+            let wave_counter = wave_counter + 1;
+            let fire_cooldown_counter = fire_cooldown_counter + 1;   
+            do Sys.wait(40);
+        }
+        return 0;
+    }
+
+    /**This function creates a new arrow by adding a new arrow to the arrows array.*/
+    method void fire_bow(){
+        var Array temp_arrows_array;
+        var int temp_arrows_counter;
+        var Arrow temp_arrow;
+        let temp_arrows_counter = 0;
+        let temp_arrow = Arrow.new(bow.get_location());
+        let arrows_shot_counter = arrows_shot_counter + 1;
+        let temp_arrows_array = Array.new((arrows_counter + 1));
+        while (temp_arrows_counter < arrows_counter){
+            let temp_arrows_array[temp_arrows_counter] = arrows_array[temp_arrows_counter];
+            let temp_arrows_counter = temp_arrows_counter + 1;
+        }
+        let temp_arrows_array[arrows_counter] = temp_arrow;
+        let arrows_counter = arrows_counter + 1;
+        if (~(arrows_array = null)){
+            do arrows_array.dispose();
+        }
+        let arrows_array = temp_arrows_array;
+        return;
+    }
+
+    /** This function moves all the arrows in the game*/
+    method void move_arrows(){
+        var int index;
+        var Arrow temp_arrow;
+        let index = 0;
+        while (index < arrows_counter)
+            {
+                let temp_arrow = arrows_array[index];
+                do temp_arrow.move();
+                let index = index + 1;
+            }
+        return;
+    }
+
+    /** This function moves all the monsters in the game*/
+    method void move_monsters(){
+        var int index;
+        var Monster temp_monster;
+        if (monsters_wave_cooldown_counter = 2){
+            while (index < monsters_counter)
+            {
+                let temp_monster = monsters_array[index];
+                do temp_monster.move();
+                let index = index + 1;
+            }
+            let monsters_wave_cooldown_counter = - 1;
+        }
+        return;
+    }
+
+    /** This function creates a new wave of monsters by adding more monsters to the monsters array
+    The argument given is an int representing the number of new monsters to add*/
+    method void start_new_wave(int number_of_new_monsters)
+    {
+        var int i;
+        var int j;
+        var Array new_wave;
+        var Monster temp_monster;
+        let i = 0;
+        let new_wave = Array.new(monsters_counter + number_of_new_monsters);
+        while (i < monsters_counter)
+        {
+            let new_wave[i] = monsters_array[i];
+            let i = i + 1;
+        }
+        let j = 0;
+        while(i < (monsters_counter + number_of_new_monsters))
+        {
+            let temp_monster = Monster.new((j)*2);
+            let new_wave[i] = temp_monster;
+            let i = i + 1;
+            let j = j + 1;
+        }
+        let monsters_counter = monsters_counter + number_of_new_monsters;
+        if (~(monsters_array= null))
+        {
+            do monsters_array.dispose();
+        }
+        let monsters_array = new_wave;
+        return;
+
+    }
+
+    /** This function draws all the different pieces of the game on the screen*/
+    method void draw_new(){
+        do draw_monsters();
+        do bow.draw_bow();
+        do draw_arrows();
+        return;   
+    }
+
+    /** This function draws all the arrows on the screen by calling draw_arrow on 
+    every arrow in the arrow array*/
+    method void draw_arrows(){
+        var int index;
+        var Arrow temp_arrow;
+        let index = 0;
+        while(index < arrows_counter)
+        {
+            let temp_arrow = arrows_array[index];
+            do temp_arrow.draw_arrow();
+            let index = index + 1;
+        }
+        return;
+    }
+
+    /** This function draws all the monsters on the screen by calling draw_monster on every monster 
+    in the monsters array.*/
+    method void draw_monsters(){
+        var int index;
+        var Monster temp_monster;
+        let index = 0;
+        while(index < monsters_counter)
+        {
+            let temp_monster = monsters_array[index];
+            do temp_monster.draw_monster();
+            let index = index + 1;
+        }
+        return;
+    }
+
+    /** This function erases all the game from the screen.
+    We do this as refresh mechanic(erase and draw every round)*/
+    method void erase_previous(){
+        do erase_monsters();
+        do bow.erase_bow();
+        do erase_arrows();
+        return;   
+    }
+
+    /** This function erases all the monsters on the screen by calling the erase_monster that 
+    every Monster object has.*/
+    method void erase_monsters(){
+        var int index;
+        var Monster temp_monster;
+        let index = 0;
+        while(index < monsters_counter)
+        {
+            let temp_monster = monsters_array[index];
+            do temp_monster.erase_monster();
+            let index = index + 1;
+        }
+        return;
+    }
+
+    /** This function erases all the arrows on the screen by calling the erase_arrow that 
+    every Arrow object has.*/
+    method void erase_arrows(){
+        var int index;
+        var Arrow temp_arrow;
+        let index = 0;
+        while(index < arrows_counter)
+        {
+            let temp_arrow = arrows_array[index];
+            do temp_arrow.erase_arrow();
+            let index = index + 1;
+        }
+        return;
+    }
+
+    /**This function initializes an array of booleans to false with the size of "arrows_counter"*/
+    method Array init_arrows_hits()
+    {
+        var Array arrows_hits;
+        var int i;
+        let arrows_hits = Array.new(arrows_counter);
+        let i = 0;
+        while(i < arrows_counter)
+        {
+            let arrows_hits[i] = false;
+            let i = i + 1;
+        }
+        return arrows_hits;
+    }
+
+    /**This function initializes an array of booleans to false with the size of "monsters_counter"*/
+    method Array init_monsters_hits()
+    {
+        var Array monsters_hits;
+        var int i;
+        let monsters_hits = Array.new(monsters_counter);
+        let i = 0;
+        while(i < monsters_counter)
+        {
+            let monsters_hits[i] = false;
+            let i = i + 1;
+        }
+        return monsters_hits;
+    }
+
+    /**This function counts the number of arrows that need to be deleted by
+    counting the number of trues in the array given as an argument and returns that number*/
+    method int get_number_of_arrow_hits(Array arrows_hits_arr)
+    {
+        var int num_of_arrow_hits;
+        var int i;
+        let i = 0;
+        let num_of_arrow_hits = 0;
+        while(i < arrows_counter)
+        {
+            if(arrows_hits_arr[i] = true)
+            {
+                let num_of_arrow_hits = num_of_arrow_hits + 1;
+            }
+            let i = i + 1;
+        }
+        return num_of_arrow_hits;
+    }
+
+    /**This function counts the number of monsters that need to be deleted by
+    counting the number of trues in the array given as an argument and returns that number*/
+    method int get_number_of_monster_hits(Array monsters_hits_arr)
+    {
+        var int num_of_monster_hits;
+        var int i;
+        let i = 0;
+        let num_of_monster_hits = 0;
+        while(i < monsters_counter)
+        {
+            if(monsters_hits_arr[i] = true)
+            {
+                let num_of_monster_hits = num_of_monster_hits + 1;
+            }
+            let i = i + 1;
+        }
+        return num_of_monster_hits;
+    }
+
+    /** This function updates the arrows array with two arguments. The
+    first one an int representing the number of arrows to delete. The second
+    an array of booleans that correspond with every arrow in the game*/
+    method void update_arrows_array(int num_of_arrow_hits, Array arrows_hits_array)
+    {
+        var int i;
+        var int j;
+        var Array temp_arrows_array;
+        var Arrow temp_arrow;
+
+        if ((arrows_counter - num_of_arrow_hits) > 0){
+            let i = 0; 
+            let j = 0;
+            let temp_arrows_array = Array.new((arrows_counter - num_of_arrow_hits));
+            while(i < arrows_counter)
+            {
+                if(arrows_hits_array[i] = false)
+                {
+                    let temp_arrows_array[j] = arrows_array[i];
+                    let j = j + 1;
+                }
+                else{
+                    let temp_arrow =  arrows_array[i];
+                    do temp_arrow.dispose();
+                    let temp_arrow = null;
+                }
+                let i = i + 1;
+            }
+            let arrows_counter = arrows_counter - num_of_arrow_hits;
+            do arrows_array.dispose();
+            let arrows_array = temp_arrows_array;
+        }
+        else{
+            
+            let i = 0;
+
+            if (~(arrows_array = null)){
+                
+                while (i < arrows_counter)
+                {
+                    if (arrows_hits_array[i] = true)
+                    {
+                        let temp_arrow =  arrows_array[i];
+                        do temp_arrow.dispose();
+                        let temp_arrow = null;
+                    }
+                    let i = i + 1;
+                }
+                do arrows_array.dispose();
+            }
+            let arrows_counter = 0;
+            let arrows_array = null;
+        }
+        do arrows_hits_array.dispose();
+        return;
+    }
+
+    /** This function updates the monsters array with two arguments. The
+    first one an int representing the number of monsters to delete. The second
+    an array of booleans that correspond with every monster in the game*/
+    method void update_monsters_array(int num_of_monster_hits, Array monsters_hits_array)
+    {
+        var int i;
+        var int j;
+        var Array temp_monsters_array;
+        var Monster temp_monster;
+        if ((monsters_counter - num_of_monster_hits) > 0){
+            let i = 0;
+            let j = 0;
+            let temp_monsters_array = Array.new((monsters_counter - num_of_monster_hits));
+            while(j < monsters_counter)
+            {
+                if(monsters_hits_array[j] = false)
+                {
+                    let temp_monsters_array[i] = monsters_array[j];
+                    let i = i + 1; 
+                }
+                else
+                {
+                    let temp_monster = monsters_array[j];
+                    do temp_monster.dispose();
+                }
+                let j = j + 1;
+            }
+            let monsters_counter = monsters_counter - num_of_monster_hits;
+            do monsters_array.dispose();
+            let monsters_array = temp_monsters_array;
+        }
+        else{
+            let i = 0;
+            if (~(monsters_array = null)){
+                
+                while (i < arrows_counter)
+                {
+                    if (monsters_hits_array[i] = true)
+                    {
+                        let temp_monster =  monsters_array[i];
+                        do temp_monster.dispose();
+                        let temp_monster = null;
+                    }
+                    let i = i + 1;
+                }
+                do monsters_array.dispose();
+            }
+            let monsters_counter = 0;
+            let monsters_array = null;
+        }
+        do monsters_hits_array.dispose();
+        return;
+
+    }
+
+    /** This function deletes arrows that have reached the end of the screen
+    from the arrows array.*/
+    method void delete_missed_arrows()
+    {
+        var int i;
+        var Array arrows_bool;
+        var Arrow temp_arrow;
+        var int number_of_arrows_missed;
+        if (arrows_counter = 0){return;}
+        let number_of_arrows_missed = 0;
+        let arrows_bool = init_arrows_hits();
+        let i = 0;
+        while (i < arrows_counter)
+        {
+            let temp_arrow = arrows_array[i];
+            if((temp_arrow.get_location() - 32) < 0)
+            {
+                let arrows_bool[i] = true;
+            }
+            let i = i + 1;
+        }
+        let number_of_arrows_missed = get_number_of_arrow_hits(arrows_bool);
+        do update_arrows_array(number_of_arrows_missed, arrows_bool);
+        return;
+    }
+
+    /** This function checks if a monster got to the last row and passed the bow
+    if a monster did return true else false.*/
+    method bool is_lost()
+    {
+        var int i;
+        var Monster temp_monster;
+        let i = 0;
+        while (i < monsters_counter)
+        {
+            let temp_monster = monsters_array[i];
+            if((temp_monster.get_location() + (32*16)) > 8192)
+            {
+                return true;
+            }
+            let i = i + 1;
+        }
+        return false;
+    }
+
+    /** This function checks if there was a hit between an arrow and a monster 
+    in the game and if there is updates the arrows and monsters array accordingly*/
+    method void check_collision()
+    {
+        var int i;
+        var int j;
+        var Arrow temp_arrow;
+        var Monster temp_monster;
+        var Array arrows_hits;
+        var Array monsters_hits;
+        var Array temp_arrows_array;
+        var Array temp_monsters_array;
+        var int number_of_arrow_hits;
+        var int number_of_monster_hits;
+        var bool hit;
+
+        if ( (arrows_counter = 0) | (monsters_counter = 0) ) { return; }
+        
+        let arrows_hits = init_arrows_hits();
+        let monsters_hits = init_monsters_hits();
+
+        let i = 0;
+        while (i < arrows_counter)
+        {
+            let hit = false;
+            let temp_arrow = arrows_array[i];
+            let j = 0;
+            while (j < monsters_counter)
+            {
+                let temp_monster = monsters_array[j];
+                if ((temp_arrow.get_location() - (32*15)) = temp_monster.get_location())
+                {
+                    let hit = true;
+                }
+                if((temp_arrow.get_location() - (32*16)) = temp_monster.get_location())
+                {
+                    let hit = true;
+                }
+                if ((temp_arrow.get_location() - (32*17)) = temp_monster.get_location())
+                {
+                    let hit = true;
+                }
+                if(hit){
+                    let arrows_hits[i] = true;
+                    let monsters_hits[j] = true;
+                    let points_number = points_number + 1;
+                    let j =  monsters_counter;   
+                }
+                let j = j + 1;
+            }
+            let i = i + 1;
+        }
+
+        let number_of_arrow_hits = get_number_of_arrow_hits(arrows_hits);
+        let number_of_monster_hits = get_number_of_monster_hits(monsters_hits);
+        do update_arrows_array(number_of_arrow_hits, arrows_hits);
+        do update_monsters_array(number_of_monster_hits, monsters_hits);
+        return;
+    }
+
+    /**
+    This function prints all the needed info to the screen 
+    through out the game.
+    */
+    method void print_messages(){
+        var String points;
+        var String fire;
+        var String cooldown;
+        var String missed_arrows_message_1;
+        var String missed_arrows_message_2;
+        var String missed_arrows_message_3;
+        var String weapon_state;
+        var String accuracy;
+        var int acccuracy_percentage;
+        var String divide;
+        
+        let points = "Points: ";
+        let fire = "Press Spc To Fire!!";
+        let cooldown = "Reloading Arrow....";
+        do Output.moveCursor(1, 44);
+        do Output.printString(points);
+        do Output.printInt(points_number);
+        let accuracy = "Accuracy: ";
+        let divide = "/";
+        do Output.moveCursor(3, 44);
+        do Output.printString(accuracy);
+        do Output.printInt(points_number);
+        do Output.printString(divide);
+        do Output.printInt(arrows_shot_counter);
+        let weapon_state = "Weapon State:";
+        do Output.moveCursor(7, 44);
+        do Output.printString(weapon_state);
+        do Output.moveCursor(9, 44);
+        if (~fire_cooldown) {do Output.printString(fire);}
+        else {do Output.printString(cooldown);}
+        let missed_arrows_message_1 = "#### NOTICE! ####";
+        do Output.moveCursor(13, 44);
+        do Output.printString(missed_arrows_message_1);
+        let missed_arrows_message_2 = "Some Arrows Might";
+        do Output.moveCursor(15, 44);
+        do Output.printString(missed_arrows_message_2);
+        let missed_arrows_message_3 = "Miss!";
+        do Output.moveCursor(17, 44);
+        do Output.printString(missed_arrows_message_3);
+        
+        do points.dispose();
+        do fire.dispose();
+        do cooldown.dispose();
+        do missed_arrows_message_1.dispose();
+        do missed_arrows_message_2.dispose();
+        do missed_arrows_message_3.dispose();
+        do weapon_state.dispose();
+        do accuracy.dispose();
+        do divide.dispose();
+        return;
+    }
+
+    /**This function frees the object memory from the heap*/
+    method void dispose()
+	{
+        var int i;
+        var Monster temp_monster;
+        var Arrow temp_arrow;
+        
+        let i = 0;
+        if(~(monsters_array = null))
+        {
+            while(i < monsters_counter)
+            {
+                let temp_monster = monsters_array[i];
+               
+                do temp_monster.dispose();
+                let monsters_array[i] = null;
+                let i = i + 1;
+            }
+            do monsters_array.dispose();
+            let monsters_array = null;
+        }
+        let i = 0;
+        if(~(arrows_array = null))
+        {
+            while(i < arrows_counter)
+            {
+                let temp_arrow = arrows_array[i];
+                do temp_arrow.dispose();
+                let arrows_array[i] = null;
+                let i = i + 1;
+            }
+            do arrows_array.dispose();
+            let arrows_array = null;
+        }
+        
+        if(~(bow = null))
+        {
+            do bow.dispose();
+            let bow = null;
+        }
+		do Memory.deAlloc(this);
+		return;
+	}  
+}

@@ -1,0 +1,80 @@
+class Main{
+    /** The main function that runs the game*/
+    function void main(){
+        
+        var char key_pressed;
+        var HellInvadersGame game;
+        var int outcome;
+        var String message_one;
+        var String message_two;
+        var String winning_message;
+        var String losing_message;
+        var String restart_message;
+        var String quit_message;
+        var String intro_message_one;
+        var String intro_message_two;
+        var String goodbye;
+
+        let outcome = 1;
+        let losing_message = "#### You Lost! Mankind is doomed!! ####";
+        let winning_message = "#### You Won! Mankind is saved!! ####";
+        let restart_message = "To Start again press ENTER";
+        let intro_message_one = "Nine Waves of Monsters from hell are attacking!";
+        let intro_message_two = "Use your Bow to shoot them all and save Humanity!!";
+        let goodbye = "#### Thank you for playing HellInvaders! #####";
+        let message_one = "####### Welcome To HellInvaders! #######";
+        do Output.moveCursor(5, 8);
+        do Output.printString(message_one);
+        do Output.moveCursor(8,8);
+        do Output.printString(intro_message_one);
+        do Output.moveCursor(10,8);
+        do Output.printString(intro_message_two);
+        let message_two = "To Start the game please press ENTER";
+        do Output.moveCursor(14,8);
+        do Output.printString(message_two);
+        let quit_message = "To Exit please press ESC";
+        do Output.moveCursor(16,8);
+        do Output.printString(quit_message);
+
+        while ((outcome = 1) | (outcome = 2)){
+            let key_pressed = 0;
+            while (~(key_pressed = 128) &  ~(key_pressed = 140)){
+                let key_pressed = Keyboard.keyPressed();
+            }
+
+            do Screen.clearScreen();
+            if (key_pressed = 140){
+                do Output.moveCursor(5, 8);
+                do Output.printString(goodbye);
+                do message_one.dispose();
+                do message_two.dispose();
+                do quit_message.dispose();
+                do losing_message.dispose();
+                do winning_message.dispose();
+                do restart_message.dispose();
+                do intro_message_one.dispose();
+                do intro_message_two.dispose();
+                do goodbye.dispose();
+                return;
+            }
+
+            if (key_pressed = 128){
+                let game = HellInvadersGame.new();
+                let outcome = game.play();
+                do game.dispose();
+                let game = null;
+            }
+      
+            do Screen.clearScreen();
+            do Output.moveCursor(5, 8);
+            if(outcome = 1) { do Output.printString(losing_message);}
+            if(outcome = 2) { do Output.printString(winning_message);}        
+            do Output.moveCursor(9, 8);
+            do Output.printString(restart_message);
+            do Output.moveCursor(11, 8);
+            do Output.printString(quit_message);
+
+        }
+        return;
+    }
+}
