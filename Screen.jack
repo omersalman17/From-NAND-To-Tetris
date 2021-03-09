@@ -1,0 +1,215 @@
+// This file is part of www.nand2tetris.org
+// and the book "The Elements of Computing Systems"
+// by Nisan and Schocken, MIT Press.
+// File name: projects/12/Screen.jack
+
+/**
+ * A library of functions for displaying graphics on the screen.
+ * The Hack physical screen consists of 512 rows (indexed 0..511, top to bottom)
+ * of 256 pixels each (indexed 0..255, left to right). The top left pixel on 
+ * the screen is indexed (0,0).
+ */
+
+class Screen {
+    static Array screen;
+    static boolean screen_colour;
+
+
+    /** Initializes the Screen. */
+    function void init() {
+        let screen = 16384;
+        let screen_colour = true;
+        return;
+    }
+
+    /** Erases the entire screen. */
+    function void clearScreen() {
+        var int index;
+        let index = 0;
+        while(index < (8192)){
+            let screen[index] = 0;
+            let index = index + 1;
+        }
+        return;
+    }
+
+    /** Sets the current color, to be used for all subsequent drawXXX commands.
+     *  Black is represented by true, white by false. */
+    function void setColor(boolean b) {
+        let screen_colour = b;
+        return;
+    }
+
+    /** Draws the (x,y) pixel, using the current color. */
+    function void drawPixel(int x, int y){
+        var int address;
+        var int mod_result;
+        var int suited_representation;
+        
+        let address =  (y*32) + (x/16);
+        let mod_result = (x & 15);
+        let suited_representation = Math.get_two_to_the(mod_result);
+        if (screen_colour){
+             do Memory.poke(screen + address , (screen[address]  | suited_representation));
+        }
+        else{
+            do Memory.poke(screen + address, (screen[address] & ~(suited_representation)));
+        }
+        return;
+    }
+
+    /** Draws a line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void drawLine(int x1, int y1, int x2, int y2) {
+        var int dx;
+        var int dy;
+        var int suited_order_x1;
+        var int suited_order_x2;
+        var int suited_order_y1;
+        var int suited_order_y2;
+        let suited_order_x1 = x1;
+        let suited_order_y1 = y1;
+        let suited_order_x2 = x2;
+        let suited_order_y2 = y2;
+        if(x1 = x2){
+            if (y1 > y2)
+            {
+                do Screen.draw_vertical_line(x2, y2, x1, y1);
+            }
+            else{
+                do Screen.draw_vertical_line(x1, y1, x2, y2);
+            }
+           
+            return;
+        }
+
+        if(x1 > x2){
+            let suited_order_x1 = x2;
+            let suited_order_y1 = y2;
+
+            let suited_order_x2 = x1;
+            let suited_order_y2 = y1;
+        }
+
+        if (y1 = y2){
+
+            do Screen.draw_horizontal_line(suited_order_x1, suited_order_y1, suited_order_x2, suited_order_y2);
+            return;
+        }
+        
+        if (suited_order_y1 < suited_order_y2){
+            do Screen.draw_increasing_or_decreasing_line(suited_order_x1, suited_order_y1, suited_order_x2, suited_order_y2, true);
+        }
+        else{
+            do Screen.draw_increasing_or_decreasing_line(suited_order_x1, suited_order_y1, suited_order_x2, suited_order_y2, false);
+        }
+        return;
+    }
+
+    /** Draws a  vertical line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void draw_vertical_line(int x1, int y1, int x2, int y2){
+        var int  b, dy;
+        let b = 0; 
+        let dy = y2 - y1;
+        while ((b < dy) | (b = dy)){
+            do Screen.drawPixel(x1, y1+b);
+            let b = b + 1; 
+        }
+        return;
+    }
+
+    /** Draws a horizontal line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void draw_horizontal_line(int x1, int y1, int x2, int y2){
+        var int current_pixel_x_cord;
+        var int current_register_address;
+        var int last_register_address;
+        var int y_value;
+        var int next_register_address;
+ 
+        let y_value = y1*32;
+        let current_pixel_x_cord = x1;
+        let current_register_address = (y_value) + (x1/16);
+        let next_register_address = current_register_address + 1;
+        let last_register_address = (y_value) + (x2/16);
+        while((current_register_address < next_register_address) & (current_register_address < last_register_address)){
+            do Screen.drawPixel(current_pixel_x_cord, y1);
+            let current_pixel_x_cord = current_pixel_x_cord + 1;
+            let current_register_address = y_value + (current_pixel_x_cord/16);
+        }
+        while (current_register_address < last_register_address){
+            if (screen_colour){
+                let screen[current_register_address] = -1;
+            }
+            else{
+                let screen[current_register_address] = 0;
+            }
+            let current_pixel_x_cord = current_pixel_x_cord + 16;
+            let current_register_address = current_register_address + 1;
+        }
+        while((current_pixel_x_cord < x2) | (current_pixel_x_cord = x2)){
+            do Screen.drawPixel(current_pixel_x_cord, y1);
+            let current_pixel_x_cord = current_pixel_x_cord + 1;
+        }
+        return;
+    }
+
+    /** Draws a diagonal line from pixel (x1,y1) to pixel (x2,y2), using the current color. */
+    function void draw_increasing_or_decreasing_line(int x1, int y1, int x2, int y2, boolean is_increase){
+        var int a, b, diff, dx, dy;
+        let a = 0; let b = 0; let diff = 0;
+        let dx = x2 - x1;
+        let dy = Math.abs(y2 - y1);
+        
+        while (((a < dx) | (a = dx)) & ((b < dy) | (b = dy))){
+            if (is_increase){
+                do Screen.drawPixel(x1+a, y1+b);
+            }
+            else{
+                do Screen.drawPixel(x1+a, y1-b);
+            }
+            if (diff < 0){
+                let a = a + 1;
+                let diff = diff + dy;
+            }
+            else{
+                let b = b + 1;
+                let diff = diff - dx;
+            }
+        }
+        return;
+    }
+
+    /** Draws a filled rectangle whose top left corner is (x1, y1)
+     * and bottom right corner is (x2,y2), using the current color. */
+    function void drawRectangle(int x1, int y1, int x2, int y2) {
+        var int tmp_x, tmp_y;
+        let tmp_x = x1;
+        let tmp_y = y2;
+        while((tmp_y > y1) | (tmp_y = y1)){
+            do Screen.drawLine(tmp_x, tmp_y, x2, y2);
+            let tmp_y = tmp_y - 1;
+            let y2 = y2 - 1;
+        }
+        return;
+    }
+
+    /** Draws a filled circle of radius r<=181 around (x,y), using the current color. */
+    function void drawCircle(int x, int y, int r) {
+        var int dy;
+        var int r_squared;
+        var int dy_sqaured;
+        var int distance;
+        if (r > 181){
+            // error
+            return;
+        }
+        let r_squared = r * r;
+        let dy = -r;
+        while (dy < (r + 1)){
+            let dy_sqaured = dy * dy;
+            let distance = Math.sqrt(r_squared - dy_sqaured);
+            do Screen.drawLine(x - distance, y + dy, x + distance, y + dy);
+            let dy = dy + 1;
+        }
+        return;
+    } 
+}
